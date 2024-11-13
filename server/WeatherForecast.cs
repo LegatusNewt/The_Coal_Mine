@@ -1,4 +1,4 @@
-namespace SkillsApi;
+namespace CoalMineApi;
 
 public class WeatherForecast
 {

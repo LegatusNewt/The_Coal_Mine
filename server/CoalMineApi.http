@@ -1,0 +1,9 @@
+@CoalMineApi_HostAddress = http://localhost:5096
+
+GET {{CoalMineApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+GET {{CoalMineApi_HostAddress}}/testData/
+Accept: application/json
+
+###

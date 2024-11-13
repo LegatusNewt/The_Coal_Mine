@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace SkillsApi.Controllers;
+namespace CoalMineApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
