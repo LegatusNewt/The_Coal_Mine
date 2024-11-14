@@ -1,0 +1,6 @@
+@CoalMineApi_HostAddress = http://localhost:5096
+
+GET {{CoalMineApi_HostAddress}}/emissions/
+Accept: application/json
+
+###
