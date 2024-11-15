@@ -11,3 +11,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.App{
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.App-header {
+  background-color: grey;
+  min-height: 5vh;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.App-title{
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: 2rem;
+  padding-left: 2rem;
+}
+
+.emission-toggle{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 10vh;
+  gap: .1rem;
+}
+
+.map-container{
+  flex-grow: 1;
+}
