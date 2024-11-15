@@ -6,6 +6,7 @@ import Map, {
 import { useState, useEffect, useMemo } from 'react';
 import DataPoint from './data-points';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { fetchEmissions } from './api';
 
 async function read_csv() {
   const csvResponse = await fetch("./data.csv");
@@ -23,6 +24,7 @@ function App() {
   //TODO: Create buffer size state value
   //TODO: 
   const [data, setData] = useState([]);
+  const [dataLayer, setDataLayer] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [popupInfo, setPopupInfo] = useState(null);
 
@@ -32,21 +34,27 @@ function App() {
     });
   }, []);
 
+  useEffect(() => {
+    fetchEmissions().then(res => {
+      setDataLayer(res);
+    })
+  }, []);
+
   //Testing geojson option
-  const geojson = {
-    type: 'FeatureCollection',
-    features: data.map((point, index) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [point.Longitude, point.Latitude]
-      },
-      properties: {
-        id: index,
-        ...point,
-      },
-    })),
-  };
+  // const geojson = {
+  //   type: 'FeatureCollection',
+  //   features: data.map((point, index) => ({
+  //     type: 'Feature',
+  //     geometry: {
+  //       type: 'Point',
+  //       coordinates: [point.Longitude, point.Latitude]
+  //     },
+  //     properties: {
+  //       id: index,
+  //       ...point,
+  //     },
+  //   })),
+  // };
 
   const initialViewState = {
     latitude: 43.0058,
@@ -65,25 +73,24 @@ function App() {
           mapStyle="mapbox://styles/mapbox/standard-satellite"
           onRender={(event) => event.target.resize()} //why doesn't the map fit the remaining area until this is called?
           onClick={(event) => {
-            setPopupInfo(null);
             console.log("CLICKED");
             const features = event.target.queryRenderedFeatures(event.point, {
               layers: ['point']
             });
-            if (features.length > 0) {
-              const pointData = features[0].properties;
-              const json = JSON.stringify(features);
-              //TODO: Show all point data under click target
-              console.log(json);
-              setPopupInfo({
-                longitude: features[0].geometry.coordinates[0],
-                latitude: features[0].geometry.coordinates[1],
-                allData: json,
-              })
+            if(features && features.length === 0) {
+              return;
             }
+            const pointData = features[0].properties;
+            //TODO: Show all point data under click target
+            setPopupInfo({
+              longitude: features[0].geometry.coordinates[0],
+              latitude: features[0].geometry.coordinates[1],
+              allData: pointData,
+            })
+            console.log(popupInfo);
           }}
         >
-          <Source id="test-data" type="geojson" data={geojson}>
+          <Source id="test-data" type="geojson" data={dataLayer}>
             <Layer
               id="point"
               type="circle"
@@ -96,7 +103,15 @@ function App() {
           <Popup longitude={popupInfo.longitude} latitude={popupInfo.latitude}
             anchor="bottom"
             onClose={() => setPopupInfo(null)}>
-            {`Emissions: ${popupInfo.json}`}
+            {
+              <p>
+                CH4: {popupInfo.allData.CH4}<br/>
+                C2H6: {popupInfo.allData.C2H6}<br/>
+                Latitude: {popupInfo.latitude}<br/>
+                Longitude: {popupInfo.longitude}<br/>
+                TimeStamp: {popupInfo.allData.TimeStamp}<br/>
+              </p>
+            }
           </Popup>)}
         </Map>
 

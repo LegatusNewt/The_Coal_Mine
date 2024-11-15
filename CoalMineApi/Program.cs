@@ -1,29 +1,48 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite;
-using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Create the database source builder
-var ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
-
-// Use NetTopologySuite for geometry types
-dataSourceBuilder.UseNetTopologySuite();
-var dataSource = dataSourceBuilder.Build();
+// Add the configuration
+if (builder.Environment.IsDevelopment())
+{
+	builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+}
+else
+{
+	builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+}
 
 // Add the database context
-builder.Services.AddDbContext<EmissionsDBContext>(options =>
-	options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-	x => x.UseNetTopologySuite()));
+builder.Services.AddDbContext<EmissionsDBContext>();
 builder.Services.AddEntityFrameworkNpgsql();
+
+// Add CORS services to allow all for development
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocal", policy =>
+    {
+		policy.AllowCredentials();
+        policy.AllowAnyHeader();
+		policy.AllowAnyMethod();
+		policy.WithOrigins("http://localhost:3000");
+    });
+});
+
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+		options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+	});
+
+
+
 
 var app = builder.Build();
 
@@ -33,11 +52,15 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.UseCors("AllowLocal");
+
 // Seed the database with data from a CSV file if the environment is Development
 using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
 	var environment = services.GetRequiredService<IHostEnvironment>();
+	var AppDB = services.GetRequiredService<EmissionsDBContext>();
+	var ConnectionString = AppDB.Database.GetDbConnection().ConnectionString;
 	
 	// Safety check
 	// I want to only run the data seeding on localhost on startup
@@ -52,3 +75,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+

@@ -9,7 +9,7 @@ namespace TestingProject
 {
     public abstract class TestRegistration
     {
-        private readonly IConfiguration configuration;
+        protected readonly IConfiguration configuration;
 
         #region Seeding
         //…
@@ -20,7 +20,15 @@ namespace TestingProject
 
         protected DbContextOptions<EmissionsDBContext> ContextOptions { get; }
         #endregion
+    }
 
+    public class EmissionTest : TestRegistration
+    {
+        public EmissionTest() : base(new DbContextOptionsBuilder<EmissionsDBContext>()
+            .UseNpgsql("Host=localhost;Database=emissions;Username=docker;Password=docker")
+            .Options)
+        {
+        }
 
         [Fact]
         public void TestGetEmissions()
