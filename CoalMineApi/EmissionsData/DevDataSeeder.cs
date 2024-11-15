@@ -1,6 +1,7 @@
 using CsvHelper;
 using NetTopologySuite.Geometries;
 using System.Globalization;
+using CoalMineApi.Entities;
 
 public class DevDataSeeder
 {
@@ -20,10 +21,12 @@ public class DevDataSeeder
     {
         if (!_context.Emissions.Any())
         {
-            var emissions = ReadCsvToEmissions();
+            List<Emission> emissions;
+            emissions = ReadCsvToEmissions();
             _context.Emissions.AddRange(emissions);
-            _context.SaveChanges();
         }
+        // Bulk save changes? Not sure if this actually does a bulk insert
+        _context.SaveChanges();
     }
 
     private List<Emission> ReadCsvToEmissions()

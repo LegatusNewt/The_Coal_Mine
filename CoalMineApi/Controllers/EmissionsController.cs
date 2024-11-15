@@ -1,13 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using CsvHelper;
-using System.Globalization;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
-using NetTopologySuite.Geometries;
+using CoalMineApi.Entities;
 
 namespace CoalMineApi.Controllers;
 
@@ -21,6 +13,11 @@ public class EmissionsController : ControllerBase
     public EmissionsController(ILogger<EmissionsController> logger, EmissionsDBContext context)
     {
         _logger = logger;
+        _context = context;
+    }
+
+    public EmissionsController(EmissionsDBContext context) // For test suite
+    {
         _context = context;
     }
 

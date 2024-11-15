@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using CoalMineApi.Entities;
 using Npgsql;
 
 public class EmissionsDBContext : DbContext
 {
     private readonly IConfiguration configuration;
+    
     public EmissionsDBContext(IConfiguration configuration)
     {
         this.configuration = configuration;
@@ -16,5 +18,4 @@ public class EmissionsDBContext : DbContext
     }
     public DbSet<Emission> Emissions { get; set; }
     public DbSet<Coverage> Coverages { get; set; }
-
 }
