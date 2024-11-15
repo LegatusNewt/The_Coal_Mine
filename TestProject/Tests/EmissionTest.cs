@@ -4,47 +4,45 @@ using CoalMineApi.Controllers;
 using CoalMineApi.Entities;
 using Xunit;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace TestingProject
 {
-    public abstract class TestRegistration
+    public class EmissionTest : IClassFixture<EmissionsDbContextFixture>
     {
-        protected readonly IConfiguration configuration;
+        private readonly EmissionsDBContext _context;
+        private readonly EmissionsController _controller;
 
-        #region Seeding
-        //…
-        public TestRegistration(DbContextOptions<EmissionsDBContext> contextOptions)
+        public EmissionTest(EmissionsDbContextFixture fixture)
         {
-            ContextOptions = contextOptions;
-        }
-
-        protected DbContextOptions<EmissionsDBContext> ContextOptions { get; }
-        #endregion
-    }
-
-    public class EmissionTest : TestRegistration
-    {
-        public EmissionTest() : base(new DbContextOptionsBuilder<EmissionsDBContext>()
-            .UseNpgsql("Host=localhost;Database=emissions;Username=docker;Password=docker")
-            .Options)
-        {
+            _context = fixture.Context;
+            _controller = new EmissionsController(_context);
         }
 
         [Fact]
-        public void TestGetEmissions()
+        public void GetEmissionsData_ReturnsCorrectData()
         {
-            using (var context = new EmissionsDBContext(configuration))
-            {
-                // Arrange
-                var controller = new EmissionsController(context);
+            // Act
+            var result = _controller.GetEmissionsData();
 
-                // Act
-                var result = controller.GetEmissionsData();
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var emissions = Assert.IsType<List<EmissionsController.EmissionDto>>(okResult.Value);
+            Assert.Equal(2, emissions.Count);
+        }
 
-                // Assert
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Null(viewResult.ViewData.Model);
-            }
+        [Fact]
+        public void GetEmissionsLayer_ReturnsGeoJson()
+        {
+            // Act
+            var result = _controller.GetEmissionsLayer();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var geoJson = Assert.IsType<string>(okResult.Value);
+            Assert.Contains("\"type\":\"FeatureCollection\"", geoJson);
         }
     }
 }

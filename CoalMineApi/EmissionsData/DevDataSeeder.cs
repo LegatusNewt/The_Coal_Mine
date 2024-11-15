@@ -19,7 +19,7 @@ public class DevDataSeeder
 
     public void SeedEmissions()
     {
-        if (!_context.Emissions.Any())
+        if (!_context.Emissions.Any() && !_context.Coverages.Any())
         {
             List<Emission> emissions;
             emissions = ReadCsvToEmissions();
@@ -44,7 +44,7 @@ public class DevDataSeeder
                 float lat = csv.GetField<float>("Latitude");
                 float lon = csv.GetField<float>("Longitude");
                 record.C2H6 = csv.GetField<float>("C2H6");
-                record.Ch4 = csv.GetField<float>("Ch4");
+                record.CH4 = csv.GetField<float>("Ch4");
                 record.TimeStamp = csv.GetField<DateTime>("TimeStamp").ToUniversalTime();
                 record.Point = new Point(new Coordinate(lon, lat)) { SRID = 4326 };
                 records.Add(record);

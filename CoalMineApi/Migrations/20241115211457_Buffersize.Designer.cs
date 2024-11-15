@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CoalMineApi.Migrations
 {
     [DbContext(typeof(EmissionsDBContext))]
-    partial class EmissionsDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241115211457_Buffersize")]
+    partial class Buffersize
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,7 +63,7 @@ namespace CoalMineApi.Migrations
                     b.Property<float?>("C2H6")
                         .HasColumnType("real");
 
-                    b.Property<float?>("CH4")
+                    b.Property<float?>("Ch4")
                         .HasColumnType("real");
 
                     b.Property<Point>("Point")

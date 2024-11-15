@@ -21,7 +21,7 @@ async function read_csv() {
 
 function App() {
   //TODO: Set color gradient based on range of values
-  //TODO: Create state toggle between Ethane (C2H6) and Methane (Ch4).
+  //TODO: Create state toggle between Ethane (C2H6) and Methane (CH4).
   //TODO: Create dropdown to control state toggle
   //TODO: Create buffer size state value
   //TODO: 

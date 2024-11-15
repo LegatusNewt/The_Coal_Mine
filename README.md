@@ -5,7 +5,7 @@
 The goal of this exercise is to plot the locations of each record in data.csv file on a map and save a coverage polygon.
 Each point should have some visual indicator of the value. For example higher concentrations should be red and lower ones should be green.
 
-There should be a dropdown to choose between Ethane (C2H6) and Methane (Ch4).
+There should be a dropdown to choose between Ethane (C2H6) and Methane (CH4).
 
 React map gl should be used for the front end mapping visualization
 
