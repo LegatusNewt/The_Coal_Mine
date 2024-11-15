@@ -41,9 +41,6 @@ builder.Services.AddControllers()
 		options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
 	});
 
-
-
-
 var app = builder.Build();
 
 app.UseHttpsRedirection();
