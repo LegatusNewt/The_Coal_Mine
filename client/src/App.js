@@ -1,17 +1,17 @@
 import * as React from 'react';
-import * as papa from 'papaparse'
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Fab from '@mui/material/Fab';
 import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
 import Map, {
-  Source, Layer, Popup
+  Popup
 } from 'react-map-gl';
 import { useState, useEffect, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { fetchCoverages, fetchEmissions, postCoverage } from './api';
+import { fetchEmissions, postCoverage } from './api';
 import buffer from '@turf/buffer';
-import { grey, cyan, blue } from '@mui/material/colors';
+import { grey, cyan } from '@mui/material/colors';
 import { createTheme, ThemeProvider } from '@mui/material';
 
 const mainTheme = createTheme({
@@ -34,6 +34,8 @@ function App() {
   const [cursorState, setCursorState] = useState('grab');
   const [selectedGas, setSelectedGas] = useState('C2H6');
   const [bufferSize, setBufferSize] = useState(10);
+  const [feedBack, setFeedback] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -90,8 +92,19 @@ function App() {
       }
       postCoverage(bodyCoverage).then(res => {
         console.log(res);
+        setFeedback("Coverage saved successfully");
+        setSnackbarOpen(true);
+        setPopupInfo(null);
+      }).catch(err => {
+        console.log(err);
+        setFeedback("Error saving coverage");
+
       });
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   // Describe popup component
@@ -254,6 +267,12 @@ function App() {
               {popupInfo && (
                 popupComponent()
               )}
+              <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+                message={feedBack}
+              />
             </Map>
 
           </div>

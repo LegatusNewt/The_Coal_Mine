@@ -3,9 +3,12 @@
 ## Core Technologies Used
 
 - Server: .NET Core 8 w/ Entity Framework
-- DB: Postgis w/ Npgsql
+- DB: Postgresql w/ Npgsql & Postgis
 - Client: React w/ Mapbox-gl
 - Docker
+- Helpful GIS Packages: NetTopologySuite, Turf.js
+
+I haven't used C# in over 5 years so I'm certainly open to any feedback you could provide. It was a bit of a hurdle coming from Flask w/ SQLAlchemy to .NET w/ Entity Framework. I'm also sure there are other C# web service frameworks that may have been more apt for a small project like this.
 
 ## Running the Code
 
@@ -24,6 +27,10 @@ CoverageController
 - GET coverages/data -> Same as above but for Coverages table
 - GET coverages/layer -> Same as above but for Coverages table
 - POST coveratges/data -> Takes in a CoveragePostBody ( Name, Description, Buffersize, Feature (as a geojson string)) and stores the coverage in the database Coverages table
+
+### Client
+The React web app is run by running npm install in the client directory and then npm start.
+
 
 ## Mapping coding exercise
 
