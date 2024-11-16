@@ -32,6 +32,4 @@ services:
       depends_on:
         postgis:
           condition: service_healthy
-      volumes:
-        - ./appsettings.json:/app/appsettings.json
       restart: on-failure
