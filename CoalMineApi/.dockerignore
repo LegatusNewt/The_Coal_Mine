@@ -1,0 +1,48 @@
+# Ignore .NET build outputs
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore build scripts and configuration files
+*.sh
+*.cmd
+*.ps1
+
+# Ignore local configuration files
+appsettings.json
+appsettings.Development.json
+appsettings.Local.json
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+*.code-workspace
+
+# Ignore Docker-related files
+.dockerignore
+Dockerfile
+
+# Ignore other unnecessary files
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Ignore global.json
+global.json

@@ -37,7 +37,7 @@ namespace CoalMineApi.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<Polygon>("Geometry")
+                    b.Property<Geometry>("Geometry")
                         .IsRequired()
                         .HasColumnType("geometry");
 

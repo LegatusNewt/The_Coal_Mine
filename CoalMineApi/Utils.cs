@@ -18,7 +18,7 @@ namespace Utils
             foreach (var entity in entities)
             {
                 var geometryProperty = typeof(T).GetProperties()
-                    .FirstOrDefault(p => p.PropertyType.BaseType == typeof(Geometry));
+                    .FirstOrDefault(p => p.PropertyType == typeof(Geometry) || p.PropertyType.BaseType == typeof(Geometry));
 
                 if (geometryProperty == null)
                 {

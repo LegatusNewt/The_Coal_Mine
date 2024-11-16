@@ -9,7 +9,7 @@ import Map, {
 } from 'react-map-gl';
 import { useState, useEffect, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { fetchEmissions, postCoverage } from './api';
+import { fetchEmissions, postBulkCoverage, postCoverage } from './api';
 import buffer from '@turf/buffer';
 import { grey, cyan } from '@mui/material/colors';
 import { createTheme, ThemeProvider } from '@mui/material';
@@ -44,11 +44,43 @@ function App() {
     })
   }, []);
 
+  const dataColor = () => {
+    // Different color ranges for the two gases
+    if (selectedGas === 'C2H6') {
+      return dataColorC2H6();
+    }
+    else if (selectedGas === 'CH4') {
+      return dataColorCH4();
+    }
+  };
+
+  const dataColorCH4 = () => {
+    return [
+      'interpolate',
+      ['linear'],
+      ['get', 'CH4'],
+      2, '#90EE90', // Light green
+      3, '#FFD700', // Yellow
+      4, '#FF0000'  // Bright red
+    ];
+  };
+
+  const dataColorC2H6 = () => {
+    return [
+      'interpolate',
+      ['linear'],
+      ['get', 'C2H6'],
+      0, '#ADD8E6', // Light blue
+      200, '#00BFFF', // Deep sky blue
+      400, '#FF1493'  // Deep pink
+    ];
+  };
+
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.setPaintProperty('point', 'circle-color', dataColor());
     }
-  }, [selectedGas]);
+  }, [selectedGas, dataColor]);
 
   const addBufferLayer = (size) => {
     // Create the buffered data using input in meters
@@ -72,6 +104,26 @@ function App() {
           'line-color': '#000100',
           'line-width': 1,
         },
+      });
+    }
+  };
+
+  const saveCoverageBulk = (passedBufferSize) => {
+    // Post the coverage to the server
+    if(bufferLayer && bufferLayer.features.length > 0){
+      const postBody = {
+        "Name": "Test Coverage",
+        "BufferSize": parseInt(passedBufferSize),
+        "FeatureCollection": JSON.stringify(bufferLayer),
+      }
+      console.log("Posting all coverages");
+      postBulkCoverage(postBody).then(res => {
+        console.log(res);
+        setFeedback("Coverages saved successfully");
+        setSnackbarOpen(true);
+      }).catch(err => {
+        console.log(err);
+        setFeedback("Error saving coverages");
       });
     }
   };
@@ -194,38 +246,6 @@ function App() {
     zoom: 14,
   };
 
-  const dataColor = () => {
-    // Different color ranges for the two gases
-    if (selectedGas === 'C2H6') {
-      return dataColorC2H6();
-    }
-    else if (selectedGas === 'CH4') {
-      return dataColorCH4();
-    }
-  };
-
-  const dataColorCH4 = () => {
-    return [
-      'interpolate',
-      ['linear'],
-      ['get', 'CH4'],
-      2, '#90EE90', // Light green
-      3, '#FFD700', // Yellow
-      4, '#FF0000'  // Bright red
-    ];
-  };
-
-  const dataColorC2H6 = () => {
-    return [
-      'interpolate',
-      ['linear'],
-      ['get', 'C2H6'],
-      0, '#ADD8E6', // Light blue
-      200, '#00BFFF', // Deep sky blue
-      400, '#FF1493'  // Deep pink
-    ];
-  };
-
   const handleSelectedGas = (event, newSelectedGas) => {
     setSelectedGas(newSelectedGas);
   };
@@ -239,6 +259,7 @@ function App() {
             <div className="App-control">
               <input type="text" min="1" max="100" value={bufferSize} onChange={(e) => setBufferSize(e.target.value)} />
               <Fab color="secondary" variant="extended" onClick={() => addBufferLayer(bufferSize)}>Add Buffer</Fab>
+              <Fab color="secondary" variant="extended" onClick={() => saveCoverageBulk(bufferSize)}>Save All Coverages</Fab>
               <div className="emission-toggle">
                 <p>SELECT EMISSION</p>
                 <ToggleButtonGroup

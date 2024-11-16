@@ -1,9 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using NetTopologySuite.Geometries;
-using System.Runtime.InteropServices;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace CoalMineApi.Entities
 {
@@ -32,6 +29,6 @@ namespace CoalMineApi.Entities
         [Required]
         public int BufferSize { get; set; }
         [Required]
-        public Polygon Geometry { get; set; }
+        public Geometry Geometry { get; set; }
     }
 }

@@ -13,7 +13,12 @@ I haven't used C# in over 5 years so I'm certainly open to any feedback you coul
 ## Running the Code
 
 ### Server
-In order to run the server all you should have to do is run docker-compose up app, this will also run the docker-compose up postgis command as a pre-requisite.
+In order to run the server all you should have to do is run in the CoalMineApi directory
+
+docker build ./
+docker-compose up app 
+
+This will also run the docker-compose up postgis command as a pre-requisite.
 
 The database migrations and seeding of data happens in automaitcally in code when in Development mode set in the appsettings.json.
 
@@ -23,14 +28,20 @@ EmissionsController
 - GET emissions/data -> Returns all the data from the emissions table with WKT geometry
 - GET emissions/layer -> Returns all the data from emissions table as a Geojson Feature Collection
 
+I wasn't quite sure if the goal was to post a coverage as in a buffer around a single point. Or a coverage being a single geometry that encompasses all the points. So I added endpoints for both. 
+
+However for some reason the /bulk endpoint doesn't work in the Docker container. Running it locally with .NET SDK "8.0.110" it does work. But the provided microsoft container images don't have that version available.
+
 CoverageController
 - GET coverages/data -> Same as above but for Coverages table
 - GET coverages/layer -> Same as above but for Coverages table
-- POST coveratges/data -> Takes in a CoveragePostBody ( Name, Description, Buffersize, Feature (as a geojson string)) and stores the coverage in the database Coverages table
+- POST coverages/data -> Takes in a CoveragePostBody ( Name, Description, Buffersize, Feature (as a geojson string)) and stores the coverage in the database Coverages table
+- POST coverages/data/bulk -> Takes in a FeatureCollection that is the coverage of all the points
 
 ### Client
 The React web app is run by running npm install in the client directory and then npm start.
 
+The front end is pretty self explainitory, to save the coverage on an individual point or to inspect it, click on that point.
 
 ## Mapping coding exercise
 
