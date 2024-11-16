@@ -5,7 +5,9 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Utils;
+using System.Text.Json;
 
 namespace CoalMineApi.Controllers;
 
@@ -17,8 +19,8 @@ public class CoveragesController : ControllerBase
     public class CoverageDTO
     {
         public int Id { get; set; }
-        public string ?Name { get; set; }
-        public string ?Description { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
         public int BufferSize { get; set; }
         public string WKT { get; set; }
     }
@@ -26,11 +28,11 @@ public class CoveragesController : ControllerBase
     public class CoveragePostBody
     {
         public string Name { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public int BufferSize { get; set; }
-        public string GeoJSON { get; set; }
+        public string Feature { get; set; }
     }
-    
+
     private readonly EmissionsDBContext _context;
 
     public CoveragesController(EmissionsDBContext context)
@@ -65,16 +67,39 @@ public class CoveragesController : ControllerBase
     [HttpPost("data", Name = "PostCoverageData")]
     public IActionResult PostCoverageData([FromBody] CoveragePostBody bodyCoverage)
     {
+        if (bodyCoverage == null)
+        {
+            return BadRequest("bodyCoverage is required");
+        }
         // From body is probably going to recieve a geojson?
         // Convert Geojson to polygon
-        var geo = new GeoJsonReader().Read<Polygon>(bodyCoverage.GeoJSON);
+        var geoJsonReader = new GeoJsonReader();
+        Feature geo;
+        try
+        {
+            geo = geoJsonReader.Read<Feature>(bodyCoverage.Feature);
+        }
+        catch (ParseException ex)
+        {
+            return BadRequest($"Invalid GeoJSON: {ex.Message}");
+        }
+        /** 
+            TODO: There is probably a way to create a hook / helper 
+            that will automatically convert the geojson to geometry for the entity
+        **/
+
         var coverage = new Coverage();
         coverage.Name = bodyCoverage.Name;
-        coverage.Description = bodyCoverage.Description;
+        if(bodyCoverage.Description != null) {
+            coverage.Description = bodyCoverage.Description;
+        }
+
         coverage.BufferSize = bodyCoverage.BufferSize;
-        coverage.Geometry = geo;
+        coverage.Geometry = geo.Geometry as Polygon;
         _context.Coverages.Add(coverage);
         _context.SaveChanges();
+
+        // Return the created coverage record
         return CreatedAtRoute("GetCoveragesData", new { id = coverage.Id }, coverage);
     }
 }

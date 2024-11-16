@@ -44,3 +44,9 @@ code {
 .map-container{
   flex-grow: 1;
 }
+
+
+.Popup{
+  border-radius: 5px;
+  padding: 5px;
+}

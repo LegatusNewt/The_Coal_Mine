@@ -18,4 +18,30 @@ const fetchEmissions = async () => {
     }
 };
 
-export { fetchEmissions };
+const fetchCoverages = async () => {
+    try{
+        const response = await fetch('http://localhost:5096/emissions/coverages', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching coverages", error);
+        return [];
+    }
+}
+
+const postCoverage = async (coverage) => {
+    try{
+        const response = await axios.post('http://localhost:5096/coverages/data', coverage);
+        return response; //Response here will be the coverage object?
+    } catch (error) {
+        console.error("Error posting coverage", error);
+        return [];
+    }
+}
+
+export { fetchEmissions, postCoverage, fetchCoverages };

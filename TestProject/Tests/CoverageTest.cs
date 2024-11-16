@@ -57,7 +57,7 @@ namespace TestingProject
                 Name = "Test Coverage",
                 Description = "Test Description",
                 BufferSize = 10,
-                GeoJSON = "{\"type\":\"Polygon\",\"coordinates\":[[[-104.05,48.99],[-97.22, 48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}"
+                Feature = "{\"type\":\"Polygon\",\"coordinates\":[[[-104.05,48.99],[-97.22, 48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}"
             };
 
             // Act
@@ -68,7 +68,7 @@ namespace TestingProject
             var coverageResult = Assert.IsType<Coverage>(createdResult.Value);
             Assert.Equal(coverage.Name, coverageResult.Name);
             Assert.Equal(coverage.Description, coverageResult.Description);
-            var coverageGeojson = new GeoJsonReader().Read<Geometry>(coverage.GeoJSON);
+            var coverageGeojson = new GeoJsonReader().Read<Geometry>(coverage.Feature);
             Assert.Equal(coverageGeojson.AsText(), coverageResult.Geometry.AsText()); // Compare WKT strings of geometries
         }
     }

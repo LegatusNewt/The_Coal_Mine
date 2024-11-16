@@ -3,30 +3,33 @@ import * as papa from 'papaparse'
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Fab from '@mui/material/Fab';
+import Button from '@mui/material/Button';
 import Map, {
   Source, Layer, Popup
 } from 'react-map-gl';
 import { useState, useEffect, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { fetchEmissions } from './api';
+import { fetchCoverages, fetchEmissions, postCoverage } from './api';
 import buffer from '@turf/buffer';
+import { grey, cyan, blue } from '@mui/material/colors';
+import { createTheme, ThemeProvider } from '@mui/material';
 
-async function read_csv() {
-  const csvResponse = await fetch("./data.csv");
-  const csvText = await csvResponse.text();
-  const parsed = papa.parse(csvText, { header: true });
-  console.log(parsed.data);
-  return parsed
-}
+const mainTheme = createTheme({
+  palette: {
+    primary: {
+      main: grey[500],
+    },
+    secondary: {
+      main: cyan[500],
+    },
+  },
+});
 
 function App() {
-  //TODO: Set color gradient based on range of values
-  //TODO: Create state toggle between Ethane (C2H6) and Methane (CH4).
-  //TODO: Create dropdown to control state toggle
-  //TODO: Create buffer size state value
-  //TODO: 
-  const [dataLayer, setDataLayer] = useState([]);
-  const [bufferLayer, setBufferLayer] = useState([]);
+  //TODO: Still getting error Style not loaded :(
+  //TODO: Add button to popup to save coverage
+  const [dataLayer, setDataLayer] = useState(null);
+  const [bufferLayer, setBufferLayer] = useState(null);
   const [popupInfo, setPopupInfo] = useState(false);
   const [cursorState, setCursorState] = useState('grab');
   const [selectedGas, setSelectedGas] = useState('C2H6');
@@ -39,21 +42,12 @@ function App() {
     })
   }, []);
 
-  //Testing geojson option
-  // const geojson = {
-  //   type: 'FeatureCollection',
-  //   features: data.map((point, index) => ({
-  //     type: 'Feature',
-  //     geometry: {
-  //       type: 'Point',
-  //       coordinates: [point.Longitude, point.Latitude]
-  //     },
-  //     properties: {
-  //       id: index,
-  //       ...point,
-  //     },
-  //   })),
-  // };
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.setPaintProperty('point', 'circle-color', dataColor());
+    }
+  }, [selectedGas]);
+
   const addBufferLayer = (size) => {
     // Create the buffered data using input in meters
     const bufferData = buffer(dataLayer, size, { units: 'meters' });
@@ -62,7 +56,7 @@ function App() {
     // If layer exists already just change the data
     if (mapRef.current.getLayer('buffer')) {
       mapRef.current.getSource('buffer').setData(bufferData);
-    } else{
+    } else {
       // Otherwise create the new layer
       mapRef.current.addSource('buffer', {
         type: 'geojson',
@@ -78,11 +72,59 @@ function App() {
         },
       });
     }
-
-
   };
 
+  const saveCoverage = (Id) => {
+    // Find buffer feature that matches the selected data point
+    console.log(Id);
+    if (bufferLayer && bufferLayer.features.length > 0) {
+      const feature = bufferLayer.features.find(f => f.properties.Id === Id);
+      console.log(feature);
+
+      // Post the coverage to the server
+      feature.type = "Feature";
+      var bodyCoverage = {     
+        "Name": "Test Coverage",
+        "BufferSize": bufferSize,
+        "Feature": JSON.stringify(feature),
+      }
+      postCoverage(bodyCoverage).then(res => {
+        console.log(res);
+      });
+    }
+  };
+
+  // Describe popup component
+  const popupComponent = () => {
+
+    return <Popup key={popupInfo.key}
+      longitude={popupInfo.longitude}
+      latitude={popupInfo.latitude}
+      anchor="bottom"
+      onClose={() => setPopupInfo(null)}
+    >
+      {
+        <div className="Popup">
+          <p>
+            CH4: {popupInfo.allData.CH4}<br />
+            C2H6: {popupInfo.allData.C2H6}<br />
+            Latitude: {popupInfo.latitude}<br />
+            Longitude: {popupInfo.longitude}<br />
+            TimeStamp: {popupInfo.allData.TimeStamp}<br />
+          </p>
+          <Button 
+            color='secondary' 
+            variant='raised' 
+            onClick={() => saveCoverage(popupInfo.key)}
+            sx={{ backgroundColor: "secondary.main" }}
+          >Save Coverage</Button>
+        </div>
+      }
+    </Popup>
+  }
+
   const handleLoad = (event) => {
+    // Handle the map load event and apply the event listeners to help avoid Style Not loaded errors
     const map = event.target;
     mapRef.current = map;
     map.on('mousemove', (event) => {
@@ -96,6 +138,7 @@ function App() {
       }
     });
 
+    // Handle clicking on points to open popup info and see emissions details
     map.on('click', (event) => {
       const features = map.queryRenderedFeatures(event.point, {
         layers: ['point']
@@ -103,7 +146,7 @@ function App() {
       if (features && features.length > 0) {
         const pointData = features[0].properties;
         setPopupInfo({
-          key: pointData.id,
+          key: pointData.Id,
           longitude: features[0].geometry.coordinates[0],
           latitude: features[0].geometry.coordinates[1],
           allData: pointData
@@ -112,16 +155,35 @@ function App() {
         setPopupInfo(null);
       }
     });
+
+    // Add source
+    map.addSource('test-data', {
+      type: 'geojson',
+      data: dataLayer,
+    });
+
+    // Add the data layer to the map
+    map.addLayer({
+      id: 'point',
+      type: 'circle',
+      source: 'test-data',
+      paint: {
+        'circle-radius': 5,
+        'circle-color': dataColor(),
+      }
+    });
   };
 
   const initialViewState = {
+    //TODO: Focus on the actual data points rather than hardcoded values
     latitude: 43.0058,
     longitude: -84.2338,
     zoom: 14,
   };
 
   const dataColor = () => {
-    if(selectedGas === 'C2H6') {
+    // Different color ranges for the two gases
+    if (selectedGas === 'C2H6') {
       return dataColorC2H6();
     }
     else if (selectedGas === 'CH4') {
@@ -154,72 +216,49 @@ function App() {
   const handleSelectedGas = (event, newSelectedGas) => {
     setSelectedGas(newSelectedGas);
   };
-  
+
   return (
     <>
-      <div className="App">
-        <div className="App-header">
-          <p className="App-title">Hello World</p>
-          <div>
-            <input type="text" min="1" max="100" value={bufferSize} onChange={(e) => setBufferSize(e.target.value)} />
-            <Fab variant="extended" onClick={() => addBufferLayer(bufferSize)}/>
+      <ThemeProvider theme={mainTheme}>
+        <div className="App">
+          <div className="App-header">
+            <p className="App-title">Hello World</p>
+            <div>
+              <input type="text" min="1" max="100" value={bufferSize} onChange={(e) => setBufferSize(e.target.value)} />
+              <Fab variant="extended" onClick={() => addBufferLayer(bufferSize)} />
+            </div>
+            <div className="emission-toggle">
+              <p>SELECT EMISSION</p>
+              <ToggleButtonGroup
+                value={selectedGas}
+                exclusive
+                onChange={handleSelectedGas}
+                aria-label="Select Emission"
+              >
+                <ToggleButton color="secondary" value="C2H6">C2H6</ToggleButton>
+                <ToggleButton color="secondary" value="CH4">CH4</ToggleButton>
+              </ToggleButtonGroup>
+            </div>
           </div>
-          <div class="emission-toggle">
-            <p>SELECT EMISSION</p>
-            <ToggleButtonGroup
-              value={selectedGas}
-              exclusive
-              onChange={handleSelectedGas}
-              aria-label="Select Emission"
+          <div className="map-container">
+            <Map
+
+              initialViewState={initialViewState}
+              className="map-view"
+              mapboxAccessToken="pk.eyJ1Ijoia2xhbWFyY2EiLCJhIjoiY2p5a3plOTY0MDMydDNpbzNsMDQ3ZWV2cyJ9.EA8hlPf4fj0wLkT0J0ozkA" // public token
+              mapStyle="mapbox://styles/mapbox/standard-satellite"
+              cursor={cursorState}
+              onLoad={event => handleLoad(event)}
+              onRender={(event) => event.target.resize()} //TODO: why doesn't the map fit the remaining area until this is called?
             >
-              <ToggleButton value="C2H6">C2H6</ToggleButton>
-              <ToggleButton value="CH4">CH4</ToggleButton>
-            </ToggleButtonGroup>
+              {popupInfo && (
+                popupComponent()
+              )}
+            </Map>
+
           </div>
         </div>
-        <div class="map-container">
-          <Map
-
-            initialViewState={initialViewState}
-            className="map-view"
-            mapboxAccessToken="pk.eyJ1Ijoia2xhbWFyY2EiLCJhIjoiY2p5a3plOTY0MDMydDNpbzNsMDQ3ZWV2cyJ9.EA8hlPf4fj0wLkT0J0ozkA"
-            mapStyle="mapbox://styles/mapbox/standard-satellite"
-            cursor={cursorState}
-            onLoad={handleLoad}
-            onRender={(event) => event.target.resize()} //why doesn't the map fit the remaining area until this is called?
-          >
-
-            <Source id="test-data" type="geojson" data={dataLayer}>
-              <Layer
-                id="point"
-                type="circle"
-                paint={{
-                  'circle-radius': 5,
-                  'circle-color': dataColor(),
-                }}
-              />
-            </Source>
-            {popupInfo && (
-              <Popup key={popupInfo.key}
-                longitude={popupInfo.longitude}
-                latitude={popupInfo.latitude}
-                anchor="bottom"
-                onClose={() => setPopupInfo(null)}
-                >
-                {
-                  <p>
-                    CH4: {popupInfo.allData.CH4}<br />
-                    C2H6: {popupInfo.allData.C2H6}<br />
-                    Latitude: {popupInfo.latitude}<br />
-                    Longitude: {popupInfo.longitude}<br />
-                    TimeStamp: {popupInfo.allData.TimeStamp}<br />
-                  </p>
-                }
-              </Popup>)}
-          </Map>
-
-        </div>
-      </div>
+      </ThemeProvider>
     </>
   );
 }

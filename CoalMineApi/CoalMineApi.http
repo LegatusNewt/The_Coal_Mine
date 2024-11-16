@@ -17,3 +17,6 @@ Accept: application/json
 GET {{CoalMineApi_HostAddress}}/coverages/layer
 Accept: application/json
 ###
+
+POST {{CoalMineApi_HostAddress}}/coverages/data
+###
