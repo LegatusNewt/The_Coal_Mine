@@ -1,5 +1,30 @@
 # The_Coal_Mine
 
+## Core Technologies Used
+
+- Server: .NET Core 8 w/ Entity Framework
+- DB: Postgis w/ Npgsql
+- Client: React w/ Mapbox-gl
+- Docker
+
+## Running the Code
+
+### Server
+In order to run the server all you should have to do is run docker-compose up app, this will also run the docker-compose up postgis command as a pre-requisite.
+
+The database migrations and seeding of data happens in automaitcally in code when in Development mode set in the appsettings.json.
+
+There are two controllers which handle the REST endpoints
+
+EmissionsController
+- GET emissions/data -> Returns all the data from the emissions table with WKT geometry
+- GET emissions/layer -> Returns all the data from emissions table as a Geojson Feature Collection
+
+CoverageController
+- GET coverages/data -> Same as above but for Coverages table
+- GET coverages/layer -> Same as above but for Coverages table
+- POST coveratges/data -> Takes in a CoveragePostBody ( Name, Description, Buffersize, Feature (as a geojson string)) and stores the coverage in the database Coverages table
+
 ## Mapping coding exercise
 
 The goal of this exercise is to plot the locations of each record in data.csv file on a map and save a coverage polygon.

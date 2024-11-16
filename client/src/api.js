@@ -4,7 +4,7 @@ axios.defaults.headers.post['Content-Type'] ='application/json;charset=utf-8';
 axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
 const fetchEmissions = async () => {
     try{
-        const response = await fetch('http://localhost:5096/emissions/layer', {
+        const response = await fetch('http://localhost:5000/emissions/layer', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -20,7 +20,7 @@ const fetchEmissions = async () => {
 
 const fetchCoverages = async () => {
     try{
-        const response = await fetch('http://localhost:5096/emissions/coverages', {
+        const response = await fetch('http://localhost:5000/emissions/coverages', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -36,7 +36,7 @@ const fetchCoverages = async () => {
 
 const postCoverage = async (coverage) => {
     try{
-        const response = await axios.post('http://localhost:5096/coverages/data', coverage);
+        const response = await axios.post('http://localhost:5000/coverages/data', coverage);
         return response; //Response here will be the coverage object?
     } catch (error) {
         console.error("Error posting coverage", error);

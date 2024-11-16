@@ -18,6 +18,17 @@ code {
   height: 100vh;
 }
 
+.App-control{
+  display: flex;
+  justify-content: left;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  height: 10vh;
+}
+
 .App-header {
   background-color: grey;
   min-height: 5vh;
@@ -35,7 +46,7 @@ code {
 .emission-toggle{
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: right;
   align-items: center;
   height: 10vh;
   gap: .1rem;

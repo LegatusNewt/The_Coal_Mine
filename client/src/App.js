@@ -74,7 +74,7 @@ function App() {
     }
   };
 
-  const saveCoverage = (Id) => {
+  const saveCoverage = (Id, passedBufferSize) => {
     // Find buffer feature that matches the selected data point
     console.log(Id);
     if (bufferLayer && bufferLayer.features.length > 0) {
@@ -83,9 +83,9 @@ function App() {
 
       // Post the coverage to the server
       feature.type = "Feature";
-      var bodyCoverage = {     
+      var bodyCoverage = {
         "Name": "Test Coverage",
-        "BufferSize": bufferSize,
+        "BufferSize": parseInt(passedBufferSize),
         "Feature": JSON.stringify(feature),
       }
       postCoverage(bodyCoverage).then(res => {
@@ -112,10 +112,10 @@ function App() {
             Longitude: {popupInfo.longitude}<br />
             TimeStamp: {popupInfo.allData.TimeStamp}<br />
           </p>
-          <Button 
-            color='secondary' 
-            variant='raised' 
-            onClick={() => saveCoverage(popupInfo.key)}
+          <Button
+            color='secondary'
+            variant='raised'
+            onClick={() => saveCoverage(popupInfo.key, bufferSize)}
             sx={{ backgroundColor: "secondary.main" }}
           >Save Coverage</Button>
         </div>
@@ -222,22 +222,22 @@ function App() {
       <ThemeProvider theme={mainTheme}>
         <div className="App">
           <div className="App-header">
-            <p className="App-title">Hello World</p>
-            <div>
+            <p className="App-title">Hello Project Canary</p>
+            <div className="App-control">
               <input type="text" min="1" max="100" value={bufferSize} onChange={(e) => setBufferSize(e.target.value)} />
-              <Fab variant="extended" onClick={() => addBufferLayer(bufferSize)} />
-            </div>
-            <div className="emission-toggle">
-              <p>SELECT EMISSION</p>
-              <ToggleButtonGroup
-                value={selectedGas}
-                exclusive
-                onChange={handleSelectedGas}
-                aria-label="Select Emission"
-              >
-                <ToggleButton color="secondary" value="C2H6">C2H6</ToggleButton>
-                <ToggleButton color="secondary" value="CH4">CH4</ToggleButton>
-              </ToggleButtonGroup>
+              <Fab color="secondary" variant="extended" onClick={() => addBufferLayer(bufferSize)}>Add Buffer</Fab>
+              <div className="emission-toggle">
+                <p>SELECT EMISSION</p>
+                <ToggleButtonGroup
+                  value={selectedGas}
+                  exclusive
+                  onChange={handleSelectedGas}
+                  aria-label="Select Emission"
+                >
+                  <ToggleButton color="secondary" value="C2H6">C2H6</ToggleButton>
+                  <ToggleButton color="secondary" value="CH4">CH4</ToggleButton>
+                </ToggleButtonGroup>
+              </div>
             </div>
           </div>
           <div className="map-container">

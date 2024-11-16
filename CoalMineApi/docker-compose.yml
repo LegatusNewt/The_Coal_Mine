@@ -2,7 +2,7 @@ volumes:
   db-data:
 
 services:
-  db:
+  postgis:
     image: kartoza/postgis:16
     volumes:
       - db-data:/var/lib/postgresql
@@ -16,4 +16,22 @@ services:
       - "5432:5432"
     restart: on-failure
     healthcheck:
-      test: "PGPASSWORD=${POSTGRES_PASS} pg_isready -h 127.0.0.1 -U docker -d gis"
+      test: ["CMD-SHELL", "PGPASSWORD=$$POSTGRES_PASSWORD pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+      ports:
+        - "5000:8080"
+      depends_on:
+        postgis:
+          condition: service_healthy
+      volumes:
+        - ./appsettings.json:/app/appsettings.json
+      restart: on-failure
